@@ -299,8 +299,8 @@ hijack_init(void)
 	}
 
 	if (nd) {
-		if ((mac[0] != 0) && (mac[1] != 0) && (mac[2] != 0) &&
-			(mac[3] != 0) && (mac[4] != 0) && (mac[5] != 0)) {
+		if ((mac[0] != 0) || (mac[1] != 0) || (mac[2] != 0) ||
+			(mac[3] != 0) || (mac[4] != 0) || (mac[5] != 0)) {
 			nd_args.mac = mac;
 		} else {
 			ret = parse_mac_str(mac_str, mac);
