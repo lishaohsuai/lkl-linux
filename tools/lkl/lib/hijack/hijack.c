@@ -188,11 +188,14 @@ int socket(int domain, int type, int protocol)
 	if (domain == AF_UNIX || domain == PF_PACKET)
 		return host_socket(domain, type, protocol);
 
+	if (!lkl_running)
+		return host_socket(domain, type, protocol);
+
 	return lkl_call(__lkl__NR_socket, 3, domain, type, protocol);
 }
 
 HOST_CALL(ioctl);
-int ioctl(int fd, unsigned long req, ...)
+int ioctl(int fd, int req, ...)
 {
 	va_list vl;
 	long arg;

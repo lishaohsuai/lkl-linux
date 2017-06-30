@@ -5,8 +5,8 @@ general:
 machine:
   # Add some environment variables
   environment:
-    CROSS_COMPILE: $(case $CIRCLE_NODE_INDEX in 0) host='' ;; 1) host='i686-w64-mingw32-' ;; 2) host='arm-linux-androideabi-' ;; esac; echo $host)
-    MKARG: $(case $CIRCLE_NODE_INDEX in 0) mkarg='dpdk=yes' ;; 1) host='i686-w64-mingw32-' ;; 2) host='arm-linux-androideabi-' ;; esac; echo $mkarg)
+    CROSS_COMPILE: $(case $CIRCLE_NODE_INDEX in 0) host='' ;; 1) host='i686-w64-mingw32-' ;; 2) host='arm-linux-androideabi-' ;; 3) host='aarch64-linux-android-' ;; esac; echo $host)
+    MKARG: $(case $CIRCLE_NODE_INDEX in 0) mkarg='dpdk=yes' ;; 1) host='i686-w64-mingw32-' ;; 2) host='arm-linux-androideabi-' ;; 3) host='aarch64-linux-android-' ;; esac; echo $mkarg)
     PATH: /home/ubuntu/android-toolchain/bin:${PATH}
     LKL_TEST_DHCP: 1
 
@@ -14,9 +14,15 @@ machine:
 dependencies:
   pre:
     # required for 14.04 container
-    # - sudo dpkg --add-architecture i386
+    - sudo dpkg --add-architecture i386
+    - echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+    - wget https://dl.winehq.org/wine-builds/Release.key ; sudo apt-key add Release.key ; sudo apt-add-repository 'https://dl.winehq.org/wine-builds/ubuntu/'
     - sudo apt-get update; sudo apt-get install bc libfuse-dev libarchive-dev xfsprogs valgrind gcc-mingw-w64-i686 wine qemu-user-static linux-headers-$(uname -r) ccache
-    - /usr/local/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-21 --install-dir=/home/ubuntu/android-toolchain --arch=arm
+    - sudo circleci-install ndk
+    - if [ $CIRCLE_NODE_INDEX -eq 2 ] ; then /usr/local/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-21 --install-dir=/home/ubuntu/android-toolchain --arch=arm ; cd /home/ubuntu/android-toolchain/bin ; ln -s -f arm-linux-androideabi-ld.bfd arm-linux-androideabi-ld ; fi:
+        parallel: true
+    - if [ $CIRCLE_NODE_INDEX -eq 3 ] ; then /usr/local/android-ndk/build/tools/make-standalone-toolchain.sh --platform=android-21 --install-dir=/home/ubuntu/android-toolchain --arch=arm64 ; fi:
+        parallel: true
     - sudo cp tools/lkl/bin/i686-w64-mingw32-* /usr/bin:
         parallel: true
     - git fetch --tags git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git

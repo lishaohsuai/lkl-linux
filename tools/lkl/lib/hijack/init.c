@@ -292,9 +292,10 @@ hijack_init(void)
 			}
 			offload = 0;
 			if (strcmp(iftype, "dpdk") == 0)
-				nd = lkl_netdev_dpdk_create(ifparams);
-			else if (strcmp(iftype, "vde") == 0)
-				nd = lkl_netdev_vde_create(ifparams);
+				;
+//				nd = lkl_netdev_dpdk_create(ifparams);
+//			else if (strcmp(iftype, "vde") == 0)
+//				nd = lkl_netdev_vde_create(ifparams);
 			else if (strcmp(iftype, "raw") == 0)
 				nd = lkl_netdev_raw_create(ifparams);
 		}
@@ -325,6 +326,14 @@ hijack_init(void)
 
 	if (single_cpu_mode == 1)
 		PinToFirstCpu(&ori_cpu);
+
+struct sigaction sa;
+sa.sa_handler = SIG_IGN;
+sa.sa_flags = 0;
+if (sigaction(32, &sa, 0) == -1) {
+  perror("sigaction");
+  exit(1);
+}
 
 	ret = lkl_start_kernel(&lkl_host_ops, boot_cmdline);
 	if (ret) {
